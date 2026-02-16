@@ -10,7 +10,6 @@ import { CSS } from "@dnd-kit/utilities";
 function TaskCard({ task, listId }: any) {
   const queryClient = useQueryClient();
 
-  // ✅ MAKE CARD SORTABLE
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
       id: task._id,
@@ -58,10 +57,17 @@ function TaskCard({ task, listId }: any) {
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
       className="bg-background border rounded-lg p-3 shadow-sm hover:shadow-md transition"
     >
+      {/* ✅ DRAG HANDLE */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab text-xs text-muted-foreground mb-2"
+      >
+        ⠿ Drag
+      </div>
+
       {isEditing ? (
         <div
           className="space-y-2"
@@ -87,7 +93,10 @@ function TaskCard({ task, listId }: any) {
           />
         </div>
       ) : (
-        <div onClick={() => setIsEditing(true)} className="cursor-pointer">
+        <div
+          onClick={() => setIsEditing(true)}
+          className="cursor-pointer"
+        >
           <p className="font-medium">{task.title}</p>
 
           {task.description && (
@@ -102,7 +111,10 @@ function TaskCard({ task, listId }: any) {
         variant="destructive"
         size="sm"
         className="mt-2"
-        onClick={() => deleteTaskMutation.mutate(task._id)}
+        onClick={(e) => {
+          e.stopPropagation(); // ⭐ VERY IMPORTANT
+          deleteTaskMutation.mutate(task._id);
+        }}
       >
         Delete
       </Button>

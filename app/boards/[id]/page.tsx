@@ -6,11 +6,35 @@ import { getLists, createList } from "@/services/list.service";
 import ListColumn from "@/app/components/ListColumn";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getSocket } from "@/lib/socket";
 
 export default function BoardPage() {
   const { id } = useParams();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!id) return;
+  
+    const socket = getSocket();
+    if (!socket) return;
+  
+    socket.on("connect", () => {
+      console.log("✅ Connected:", socket.id);
+    });
+  
+    socket.on("connect_error", (err) => {
+      console.log("❌ Socket error:", err.message);
+    });
+  
+    socket.connect();
+    socket.emit("joinBoard", id);
+  
+    return () => {
+      socket.disconnect();
+    };
+  }, [id]);
+
 
   const [title, setTitle] = useState("");
 
@@ -46,7 +70,6 @@ export default function BoardPage() {
 
   return (
     <div className="flex gap-6 overflow-x-auto p-6">
-
       {/* EXISTING LISTS */}
       {lists?.map((list: any) => (
         <ListColumn key={list._id} list={list} />

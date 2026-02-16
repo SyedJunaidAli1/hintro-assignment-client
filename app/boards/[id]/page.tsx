@@ -14,26 +14,29 @@ export default function BoardPage() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (!id) return;
-  
     const socket = getSocket();
     if (!socket) return;
   
-    socket.on("connect", () => {
-      console.log("✅ Connected:", socket.id);
-    });
-  
-    socket.on("connect_error", (err) => {
-      console.log("❌ Socket error:", err.message);
-    });
-  
     socket.connect();
     socket.emit("joinBoard", id);
+  
+    socket.on("taskCreated", () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    });
+  
+    socket.on("taskMoved", () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    });
+  
+    socket.on("taskDeleted", () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    });
   
     return () => {
       socket.disconnect();
     };
   }, [id]);
+
 
 
   const [title, setTitle] = useState("");

@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { signup } from "@/services/auth.service";
+import { login } from "@/services/auth.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-export default function SignupPage() {
+export default function LoginPage() {
   const router = useRouter();
 
   const [form, setForm] = useState({
-    name: "",
     email: "",
     password: "",
   });
@@ -26,17 +26,16 @@ export default function SignupPage() {
     });
   };
 
-  const handleSignup = async () => {
+  const handleLogin = async () => {
     try {
       setLoading(true);
-      await signup(form);
+      await login(form);
 
-      // redirect after signup
-      router.push("/login");
-
+      // cookie set by backend
+      router.push("/boards");
     } catch (err) {
       console.error(err);
-      alert("Signup failed");
+      toast.error("Invalid credentials");
     } finally {
       setLoading(false);
     }
@@ -46,44 +45,22 @@ export default function SignupPage() {
     <div className="flex items-center justify-center min-h-screen bg-muted">
       <Card className="w-[400px] shadow-lg">
         <CardHeader>
-          <CardTitle>Create Account</CardTitle>
+          <CardTitle>Welcome Back</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <div>
-            <Label>Name</Label>
-            <Input
-              name="name"
-              placeholder="Junaid"
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
             <Label>Email</Label>
-            <Input
-              name="email"
-              type="email"
-              placeholder="demo@test.com"
-              onChange={handleChange}
-            />
+            <Input name="email" type="email" onChange={handleChange} />
           </div>
 
           <div>
             <Label>Password</Label>
-            <Input
-              name="password"
-              type="password"
-              onChange={handleChange}
-            />
+            <Input name="password" type="password" onChange={handleChange} />
           </div>
 
-          <Button
-            className="w-full"
-            onClick={handleSignup}
-            disabled={loading}
-          >
-            {loading ? "Creating..." : "Sign Up"}
+          <Button className="w-full" onClick={handleLogin} disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
           </Button>
         </CardContent>
       </Card>

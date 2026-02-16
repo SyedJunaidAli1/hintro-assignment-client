@@ -4,12 +4,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTasks, createTask } from "@/services/task.service";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TaskCard from "./TaskCard";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
 
 export default function ListColumn({ list }: any) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [items, setItems] = useState<any[]>([]);
 
   const queryClient = useQueryClient();
 
@@ -17,6 +24,12 @@ export default function ListColumn({ list }: any) {
     queryKey: ["tasks", list._id],
     queryFn: () => getTasks(list._id),
   });
+
+  useEffect(() => {
+    if (tasks) {
+      setItems(tasks);
+    }
+  }, [tasks]);
 
   const createTaskMutation = useMutation({
     mutationFn: createTask,
@@ -41,19 +54,39 @@ export default function ListColumn({ list }: any) {
     setDescription("");
   };
 
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+
+    if (!over) return;
+    if (active.id === over.id) return;
+
+    setItems((prev) => {
+      const oldIndex = prev.findIndex((item) => item._id === active.id);
+
+      const newIndex = prev.findIndex((item) => item._id === over.id);
+
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  };
+
   return (
-    <div className="min-w-[280px] bg-muted/40 border rounded-xl p-4">
+    <div className="min-w-70 bg-muted/40 border rounded-xl p-4">
       {/* List Title */}
       <h3 className="font-semibold mb-4 text-lg">{list.title}</h3>
 
       {/* Tasks */}
-      <div className="space-y-3">
-        {isLoading && <p className="text-sm">Loading...</p>}
-
-        {tasks?.map((task: any) => (
-          <TaskCard key={task._id} task={task} listId={list._id} />
-        ))}
-      </div>
+      <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext
+          items={items.map((t) => t._id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-3">
+            {items.map((task) => (
+              <TaskCard key={task._id} task={task} listId={list._id} />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {/* Create Task */}
       <div className="mt-4 space-y-2">

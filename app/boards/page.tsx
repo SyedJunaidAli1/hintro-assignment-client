@@ -3,14 +3,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { getBoards } from "@/services/board.service";
 import { Card, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 
 export default function BoardsPage() {
-  const { data: boards, isLoading, error } = useQuery({
+  const router = useRouter();
+  const {
+    data: boards,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["boards"],
     queryFn: getBoards,
   });
   console.log("boards:", boards);
-
 
   if (isLoading) return <p className="p-6">Loading boards...</p>;
 
@@ -23,7 +28,12 @@ export default function BoardsPage() {
           key={board._id}
           className="cursor-pointer hover:shadow-lg transition"
         >
-          <CardContent className="p-6 font-semibold">{board.title}</CardContent>
+          <CardContent
+            onClick={() => router.push(`/boards/${board._id}`)}
+            className="p-6 font-semibold"
+          >
+            {board.title}
+          </CardContent>
         </Card>
       ))}
     </div>

@@ -4,8 +4,22 @@ import { deleteTask, updateTask } from "@/services/task.service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
 function TaskCard({ task, listId }: any) {
   const queryClient = useQueryClient();
+
+  // ✅ MAKE CARD SORTABLE
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({
+      id: task._id,
+    });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
@@ -41,13 +55,18 @@ function TaskCard({ task, listId }: any) {
   };
 
   return (
-    <div className="bg-background border rounded-lg p-3 shadow-sm hover:shadow-md transition">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="bg-background border rounded-lg p-3 shadow-sm hover:shadow-md transition"
+    >
       {isEditing ? (
         <div
           className="space-y-2"
           tabIndex={0}
           onBlur={(e) => {
-            // if focus leaves the container
             if (!e.currentTarget.contains(e.relatedTarget)) {
               handleSave();
             }
@@ -59,7 +78,6 @@ function TaskCard({ task, listId }: any) {
             autoFocus
           />
 
-          {/* textarea is MUCH better UX for description */}
           <textarea
             className="w-full border rounded-md p-2 text-sm"
             placeholder="Description"
@@ -83,7 +101,7 @@ function TaskCard({ task, listId }: any) {
       <Button
         variant="destructive"
         size="sm"
-        className="mt-2 "
+        className="mt-2"
         onClick={() => deleteTaskMutation.mutate(task._id)}
       >
         Delete

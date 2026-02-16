@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTasks, createTask } from "@/services/task.service";
+import { getTasks, createTask, moveTask } from "@/services/task.service";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -40,6 +40,10 @@ export default function ListColumn({ list }: any) {
     },
   });
 
+  const moveTaskMutation = useMutation({
+    mutationFn: moveTask,
+  });
+
   const handleCreate = () => {
     if (!title) return;
 
@@ -56,16 +60,21 @@ export default function ListColumn({ list }: any) {
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = items.findIndex((item) => item._id === active.id);
+    const newIndex = items.findIndex((item) => item._id === over.id);
 
-    if (!over) return;
-    if (active.id === over.id) return;
+    console.log("OLD:", oldIndex, "NEW:", newIndex);
 
-    setItems((prev) => {
-      const oldIndex = prev.findIndex((item) => item._id === active.id);
+    // 🔥 update UI first
+    const newItems = arrayMove(items, oldIndex, newIndex);
+    setItems(newItems);
 
-      const newIndex = prev.findIndex((item) => item._id === over.id);
-
-      return arrayMove(prev, oldIndex, newIndex);
+    // 🔥 THEN persist
+    moveTaskMutation.mutate({
+      taskId: active.id,
+      position: newIndex,
+      listId: list._id,
     });
   };
 

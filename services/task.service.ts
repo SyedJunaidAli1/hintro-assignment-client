@@ -1,11 +1,5 @@
 import { api } from "@/lib/api";
 
-type MoveTaskPayload = {
-  taskId: string;
-  position: number;
-  listId: string;
-};
-
 type UpdateTaskPayload = {
   taskId: string;
   data: {
@@ -46,10 +40,15 @@ export const moveTask = async ({
   taskId,
   position,
   listId,
-}: MoveTaskPayload) => {
-  const res = await api.patch(`/tasks/${taskId}/move`, {
-    position,
-    listId,
+}: {
+  taskId: string;
+  position: number;
+  listId: string;
+}) => {
+  const res = await api.patch(`/tasks/move`, {
+    taskId,
+    toListId: listId,
+    toPosition: position,
   });
 
   return res.data;
